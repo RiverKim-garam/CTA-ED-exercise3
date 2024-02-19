@@ -1,6 +1,6 @@
 ---
 title: "CTA-ED Exercise 3: Comparison and complexity"
-author: "[name here]"
+author: "[River Kim]"
 date: "2/28/2024"
 output: html_document
 ---
@@ -10,13 +10,13 @@ output: html_document
 The hands-on exercise for this week focuses on: 1) comparing texts; 2) measuring he document-level characteristics of text---here, complexity.
 
 In this tutorial, you will learn how to:
-  
-* Compare texts using character-based measures of similarity and distance
-* Compare texts using term-based measures of similarity and distance
-* Calculate the complexity of texts
-* Replicate analyses from @schoonvelde_liberals_2019
 
-## Setup 
+-   Compare texts using character-based measures of similarity and distance
+-   Compare texts using term-based measures of similarity and distance
+-   Calculate the complexity of texts
+-   Replicate analyses from @schoonvelde_liberals_2019
+
+## Setup
 
 Before proceeding, we'll load the remaining packages we will need for this tutorial.
 
@@ -32,22 +32,22 @@ library(stringdist) # for basic character-based distance measures
 library(dplyr) #for wrangling data
 library(tibble) #for wrangling data
 library(ggplot2) #for visualization
+library(tidyr)
 ```
 
-
-For this example we'll be using data from the 2017-2018 Theresa May Cabinet in the UK. The data are tweets by members of this cabinet. 
+For this example we'll be using data from the 2017-2018 Theresa May Cabinet in the UK. The data are tweets by members of this cabinet.
 
 ```{r}
 tweets  <- readRDS(gzcon(url("https://github.com/cjbarrie/CTA-ED/blob/main/data/comparison-complexity/cabinet_tweets.rds?raw=true")))
 ```
 
-And we see that the data contain three variables: "username," which is the username of the MP in question; "tweet," which is the text of the given tweet, and "date" in days in yyyy-mm-dd format. 
+And we see that the data contain three variables: "username," which is the username of the MP in question; "tweet," which is the text of the given tweet, and "date" in days in yyyy-mm-dd format.
 
 ```{r}
 head(tweets)
 ```
 
-And there are 24 MPs whose tweets we're examining. 
+And there are 24 MPs whose tweets we're examining.
 
 ```{r}
 unique(tweets$username)
@@ -57,9 +57,9 @@ length(unique(tweets$username))
 
 ## Generate document feature matrix
 
-In order to use the `quanteda` package and its accompanying `quanteda.textstats` package, we need to reformat the data into a quanteda "corpus" object. To do this we just need to specify the text we're interested in as well as any associated document-level variables in which we're interested. 
+In order to use the `quanteda` package and its accompanying `quanteda.textstats` package, we need to reformat the data into a quanteda "corpus" object. To do this we just need to specify the text we're interested in as well as any associated document-level variables in which we're interested.
 
-We can do this as follows. 
+We can do this as follows.
 
 ```{r}
 #make corpus object, specifying tweet as text field
@@ -81,11 +81,11 @@ dfmat <- dfm(tokens(tweets_corpus),
 dfmat
 ```
 
-Note that when we do this we need to have tokenized our corpus object first. We can do this by wrapping the `tokens` function inside the `dfm()` function as above. 
+Note that when we do this we need to have tokenized our corpus object first. We can do this by wrapping the `tokens` function inside the `dfm()` function as above.
 
-So what is this object? Well the documents here are tweets. And the matrix is a sparse (i.e., mostly zeroes) matrix of 1s and 0s for whether a given word appears in the document (tweet) in question. 
+So what is this object? Well the documents here are tweets. And the matrix is a sparse (i.e., mostly zeroes) matrix of 1s and 0s for whether a given word appears in the document (tweet) in question.
 
-The vertical elements (columns) of this vector are made up of all the words used in all of the tweets combined. Here, it helps to imagine every tweet positioned side by side to understand what's going on here. 
+The vertical elements (columns) of this vector are made up of all the words used in all of the tweets combined. Here, it helps to imagine every tweet positioned side by side to understand what's going on here.
 
 ## Compare between MPs
 
@@ -102,7 +102,7 @@ corrmat[1:5,1:5]
 
 ```
 
-Note that here we're using the `dfm_group()` function, which allows you to take a document feature matrix and make calculations while grouping by one of the document-level variables we specified above. 
+Note that here we're using the `dfm_group()` function, which allows you to take a document feature matrix and make calculations while grouping by one of the document-level variables we specified above.
 
 There are many different measures of similarity, however, that we might think about using.
 
@@ -110,7 +110,7 @@ In the below, we combine four different measures of similarity, and see how they
 
 ## Compare between measures
 
-Let's see what this looks like for one of these measures---cosine similarity.
+Let's see what this looks like for one of these measures---*cosine similarity*.
 
 We first get similarities between the text of MP tweets and all other MPs.
 
@@ -124,9 +124,9 @@ cos_sim <- dfmat %>%
 
 ```
 
-But remember we're only interested in how they compare to what Theresa May has been saying. 
+But remember we're only interested in how they compare to what Theresa May has been saying.
 
-So we need to take these cosine similarities and retain only those similarity measures corresponding to the text of Theresa May's tweets. 
+So we need to take these cosine similarities and retain only those similarity measures corresponding to the text of Theresa May's tweets.
 
 We first convert the `textstat_simil()` output to a matrix.
 
@@ -136,16 +136,16 @@ cosmat <- as.matrix(cos_sim) #convert to a matrix
   
 ```
 
-And we can see that the 23rd row of this matrix contains the similarity measures with the Theresa May tweets. 
+And we can see that the 23rd row of this matrix contains the similarity measures with the Theresa May tweets.
 
-We take this row, removing the similarity of Theresa May with herself (which will always = 1), and convert it to a datframe object. 
+We take this row, removing the similarity of Theresa May with herself (which will always = 1), and convert it to a datframe object.
 
 ```{r}
 #generate data frame keeping only the row for Theresa May
 cosmatdf <- as.data.frame(cosmat[23, c(1:22, 24)])
 ```
 
-We then rename the cosine similarity column with an appropriate name and convert row names to a column variable so that we have cells containing information on the MP to which the cosine similarity measure refers. 
+We then rename the cosine similarity column with an appropriate name and convert row names to a column variable so that we have cells containing information on the MP to which the cosine similarity measure refers.
 
 ```{r}
 #rename column
@@ -155,7 +155,7 @@ colnames(cosmatdf) <- "corr_may"
 cosmatdf <- tibble::rownames_to_column(cosmatdf, "username")
 ```
 
-And like so we have our data in tidy format, which we can then plot like so. 
+And like so we have our data in tidy format, which we can then plot like so.
 
 ```{r}
 ggplot(cosmatdf) +
@@ -167,7 +167,7 @@ ggplot(cosmatdf) +
 
 ```
 
-Combining these steps into a single `for` loop, we can see how our different similarity measures of interest compare. 
+Combining these steps into a single `for` loop, we can see how our different similarity measures of interest compare.
 
 ```{r}
 
@@ -223,9 +223,9 @@ ggplot(testdf_all) +
 
 ## Complexity
 
-We now move to document-level measures of text characteristics. And here we will focus on the paper by @schoonvelde_liberals_2019. 
+We now move to document-level measures of text characteristics. And here we will focus on the paper by @schoonvelde_liberals_2019.
 
-We will be using a subset of these data, taken from EU speeches given by four politicians. These are provided by the authors at [https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/S4IZ8K](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/S4IZ8K).
+We will be using a subset of these data, taken from EU speeches given by four politicians. These are provided by the authors at <https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/S4IZ8K>.
 
 We can load the data as follows.
 
@@ -271,14 +271,13 @@ sum_corpus$min <- sum_corpus$mean - 1.96*sum_corpus$se
 sum_corpus$max <- sum_corpus$mean + 1.96*sum_corpus$se
 ```
 
-And this gives us data in tidy format that looks like so. 
+And this gives us data in tidy format that looks like so.
 
 ```{r}
 sum_corpus
 ```
 
-Which we can then plot---and we see that our results look like those in Figure 1 of the published article by @schoonvelde_liberals_2019. 
-
+Which we can then plot---and we see that our results look like those in Figure 1 of the published article by @schoonvelde_liberals_2019.
 
 ```{r}
 
@@ -295,6 +294,125 @@ ggplot(sum_corpus, aes(x=speaker, y=mean)) +
 
 ## Exercises
 
-1. Compute distance measures such as "euclidean" or "manhattan" for the MP tweets as above, comparing between tweets by MPs and tweets by PM, Theresa May. 
-2. Estimate at least three other complexity measures for the EU speeches as above. Consider how the results compare to the Flesch-Kincaid measure used in the article by @schoonvelde_liberals_2019.
-3. (Advanced---optional) Estimate similarity scores between the MP tweets and the PM tweets for each week contained in the data. Plot the results. 
+1.  Compute distance measures such as "euclidean" or "manhattan" for the MP tweets as above, comparing between tweets by MPs and tweets by PM, Theresa May. \# Euclidean distance
+
+```{r}
+# Get *euclidean* distance
+euclidean_dis <- dfmat %>%
+  dfm_group(groups = username) %>%
+  textstat_dist(margin = "documents", method = "euclidean")
+
+# convert the output to a matrix
+euclidean_dis_mat <- as.matrix(euclidean_dis) 
+```
+
+# tidy format
+
+```{r}
+# select 23rd row of the matrix
+eucl_dis_mat <- as.data.frame(euclidean_dis_mat[23, c(1:22, 24)])
+
+#rename colume
+colnames(eucl_dis_mat) <- "dist_may"
+
+#rownames
+eucl_dis_mat <- tibble::rownames_to_column(eucl_dis_mat, "username")
+```
+
+# plot
+
+```{r}
+ggplot(eucl_dis_mat) +
+  geom_point(aes(x=reorder(username, -dist_may), y= dist_may)) +
+  coord_flip() +
+  xlab("MP username") +
+  ylab("Euclidean distance score") +
+  theme_minimal()
+
+# Euclidean distance score shows the distance between tweets of Theresa May and MPs. Euclidean distance and other similarity scores above do not seem to have in common directly in that tweets of Penny Mordaunt and Brandon Lewis are far from PM's depite their medium similarities.
+```
+
+2.  Estimate at least three other complexity measures for the EU speeches as above. Consider how the results compare to the Flesch-Kincaid measure used in the article by @schoonvelde_liberals_2019.
+
+```{r}
+#Use *speeches* data with other textstat_readability scores
+
+#coleman
+speeches$coleman <- textstat_readability(speeches$text, measure = "Coleman", remove_hyphens = TRUE, min_sentence_length = 1, max_sentence_length = 10000)
+
+#meanSentenceLength
+speeches$sent_length <- textstat_readability(speeches$text, measure = "meanSentenceLength", remove_hyphens = TRUE, min_sentence_length = 1, max_sentence_length = 10000)
+
+#SMOG
+speeches$smog <- textstat_readability(speeches$text, measure = "SMOG", remove_hyphens = TRUE, min_sentence_length = 1, max_sentence_length = 10000)
+
+#Scrabble
+speeches$scrabble <- textstat_readability(speeches$text, measure = "Scrabble", remove_hyphens = TRUE, min_sentence_length = 1, max_sentence_length = 10000)
+
+#remian the scores
+speeches$coleman <- speeches$coleman$Coleman
+speeches$sent_length <- speeches$sent_length$meanSentenceLength
+speeches$smog <- speeches$smog$SMOG
+speeches$scrabble <- speeches$scrabble$Scrabble
+
+```
+
+#get mean of scores and N of speeches for each speaker
+
+```{r}
+sum_corpus_score <- speeches %>%
+  group_by(speaker) %>%
+  summarise(mean_cole = mean(coleman, na.rm = TRUE),
+            SD_cole = sd(coleman, na.rm = TRUE), 
+            mean_length = mean(sent_length, na.rm = TRUE),
+            SD_length = sd(sent_length, na.rm = TRUE), 
+            mean_smog = mean(smog, na.rm = TRUE),
+            SD_smog = sd(smog, na.rm = TRUE), 
+            mean_scrabble = mean(scrabble, na.rm = TRUE),
+            SD_scrabble = sd(scrabble, na.rm = TRUE), 
+            N=length(speaker))
+
+sum_corpus_score
+```
+
+# graph
+
+```{r}
+ggplot(sum_corpus_score, aes(x=speaker, y=mean_cole)) +
+  geom_bar(stat = "identity") +
+  xlab("") +
+  ylab("Mean Coleman")
+
+ggplot(sum_corpus_score, aes(x=speaker, y=mean_length)) +
+  geom_bar(stat = "identity") +
+  xlab("") +
+  ylab("Mean sentence length")
+
+ggplot(sum_corpus_score, aes(x=speaker, y=mean_smog)) +
+  geom_bar(stat = "identity") +
+  xlab("") +
+  ylab("Mean smog")
+
+ggplot(sum_corpus_score, aes(x=speaker, y=mean_scrabble)) +
+  geom_bar(stat = "identity") +
+  xlab("") +
+  ylab("Mean scrabble")
+
+
+# combine the graph with multiple y values
+sum_corpus_score_long <- sum_corpus_score %>%
+  gather(key = "variable", value = "value", mean_cole, mean_length, mean_smog, mean_scrabble)
+
+ggplot(sum_corpus_score_long, aes(x = speaker, y = value, fill = variable)) +
+  geom_col(position = "dodge") +
+  xlab("") +
+  ylab("Mean Value")
+
+```
+
+3.  (Advanced---optional) Estimate similarity scores between the MP tweets and the PM tweets for each week contained in the data. Plot the results.
+
+```{r}
+# there is no date data in 'speeches'
+
+```

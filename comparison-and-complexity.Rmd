@@ -134,6 +134,9 @@ We first convert the `textstat_simil()` output to a matrix.
 
 cosmat <- as.matrix(cos_sim) #convert to a matrix
   
+
+?as.matrix
+
 ```
 
 And we can see that the 23rd row of this matrix contains the similarity measures with the Theresa May tweets.
@@ -294,7 +297,7 @@ ggplot(sum_corpus, aes(x=speaker, y=mean)) +
 
 ## Exercises
 
-1.  Compute distance measures such as "euclidean" or "manhattan" for the MP tweets as above, comparing between tweets by MPs and tweets by PM, Theresa May. \# Euclidean distance
+##1. Compute distance measures such as "euclidean" or "manhattan" for the MP tweets as above, comparing between tweets by MPs and tweets by PM, Theresa May. \# Euclidean distance
 
 ```{r}
 # Get *euclidean* distance
@@ -306,9 +309,9 @@ euclidean_dis <- dfmat %>%
 euclidean_dis_mat <- as.matrix(euclidean_dis) 
 ```
 
-# tidy format
-
 ```{r}
+## tidy format
+
 # select 23rd row of the matrix
 eucl_dis_mat <- as.data.frame(euclidean_dis_mat[23, c(1:22, 24)])
 
@@ -319,9 +322,9 @@ colnames(eucl_dis_mat) <- "dist_may"
 eucl_dis_mat <- tibble::rownames_to_column(eucl_dis_mat, "username")
 ```
 
-# plot
-
 ```{r}
+##Plot
+
 ggplot(eucl_dis_mat) +
   geom_point(aes(x=reorder(username, -dist_may), y= dist_may)) +
   coord_flip() +
@@ -332,7 +335,7 @@ ggplot(eucl_dis_mat) +
 # Euclidean distance score shows the distance between tweets of Theresa May and MPs. Euclidean distance and other similarity scores above do not seem to have in common directly in that tweets of Penny Mordaunt and Brandon Lewis are far from PM's depite their medium similarities.
 ```
 
-2.  Estimate at least three other complexity measures for the EU speeches as above. Consider how the results compare to the Flesch-Kincaid measure used in the article by @schoonvelde_liberals_2019.
+##2. Estimate at least three other complexity measures for the EU speeches as above. Consider how the results compare to the Flesch-Kincaid measure used in the article by @schoonvelde_liberals_2019.
 
 ```{r}
 #Use *speeches* data with other textstat_readability scores
@@ -349,7 +352,7 @@ speeches$smog <- textstat_readability(speeches$text, measure = "SMOG", remove_hy
 #Scrabble
 speeches$scrabble <- textstat_readability(speeches$text, measure = "Scrabble", remove_hyphens = TRUE, min_sentence_length = 1, max_sentence_length = 10000)
 
-#remian the scores
+#remain the scores
 speeches$coleman <- speeches$coleman$Coleman
 speeches$sent_length <- speeches$sent_length$meanSentenceLength
 speeches$smog <- speeches$smog$SMOG
@@ -357,9 +360,8 @@ speeches$scrabble <- speeches$scrabble$Scrabble
 
 ```
 
-#get mean of scores and N of speeches for each speaker
-
 ```{r}
+#get mean of scores and N of speeches for each speaker
 sum_corpus_score <- speeches %>%
   group_by(speaker) %>%
   summarise(mean_cole = mean(coleman, na.rm = TRUE),
@@ -375,9 +377,9 @@ sum_corpus_score <- speeches %>%
 sum_corpus_score
 ```
 
-# graph
-
 ```{r}
+# graph
+# First I make four different graphs for each measure
 ggplot(sum_corpus_score, aes(x=speaker, y=mean_cole)) +
   geom_bar(stat = "identity") +
   xlab("") +
